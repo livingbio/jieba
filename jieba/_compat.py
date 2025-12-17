@@ -3,6 +3,12 @@ import logging
 import os
 import sys
 
+if sys.version_info >= (3, 9):
+    from importlib import resources
+else:
+    # Python 3.8 或更舊版本，需要 pip install importlib_resources
+    import importlib_resources as resources
+
 log_console = logging.StreamHandler(sys.stderr)
 default_logger = logging.getLogger(__name__)
 default_logger.setLevel(logging.DEBUG)
@@ -14,14 +20,10 @@ def setLogLevel(log_level):
 
 check_paddle_install = {'is_paddle_installed': False}
 
-try:
-    import pkg_resources
 
-    get_module_res = lambda *res: pkg_resources.resource_stream(__name__,
-                                                                os.path.join(*res))
-except ImportError:
-    get_module_res = lambda *res: open(os.path.normpath(os.path.join(
-        os.getcwd(), os.path.dirname(__file__), *res)), 'rb')
+def get_module_res(*res):
+    package_name = __name__.rsplit('.', 1)[0]
+    return resources.files(package_name).joinpath(*res).open("rb")
 
 
 def enable_paddle():
